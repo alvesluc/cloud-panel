@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>{% block title %}Skynova Dashboard{% endblock %}</title>
+
+        <!-- This tells Symfony to grab CSS from Webpack -->
+        {% block stylesheets %}
+            {{ encore_entry_link_tags('app') }}
+        {% endblock %}
+    </head>
+    <body>
+        <!-- Vue mounts to this ID -->
+        <div id="app"></div>
+
+        <!-- This tells Symfony to grab JS from Webpack -->
+        {% block javascripts %}
+            {{ encore_entry_script_tags('app') }}
+        {% endblock %}
+    </body>
+</html>

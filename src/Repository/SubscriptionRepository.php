@@ -17,7 +17,7 @@ class SubscriptionRepository extends ServiceEntityRepository
         parent::__construct($registry, Subscription::class);
     }
 
-    public function calculateTotalMRR(?string $region)
+    public function calculateTotalMRR(?string $region): float
     {
         $qb = $this->createQueryBuilder('s')
             ->select('SUM(p.price)')
@@ -34,29 +34,42 @@ class SubscriptionRepository extends ServiceEntityRepository
         return (float) $qb->getQuery()->getSingleScalarResult();
     }
 
-    public function findCriticalSubscriptions(int $limit = 5): array
+    public function findCriticalSubscriptions(int $limit = 5, ?string $region = null): array
     {
-        return $this->createQueryBuilder('s')
+        $qb = $this->createQueryBuilder('s')
             ->join('s.plan', 'p')
             ->join('s.client', 'c')
             ->addSelect('p', 'c')
             ->where('s.status = :status')
             ->andWhere('(s.currentUsage / p.limitValue) >= 0.9')
-            ->setParameter('status', SubscriptionStatus::ACTIVE)
-            ->setMaxResults($limit)
+            ->setParameter('status', SubscriptionStatus::ACTIVE);
+
+        if ($region) {
+            $qb->andWhere('c.region = :region')
+                ->setParameter('region', $region);
+        }
+
+        return $qb->setMaxResults($limit)
             ->getQuery()
             ->getResult();
     }
 
-    public function getTopPerformingServices(): array
+    public function getTopPerformingServices(?string $region = null): array
     {
-        return $this->createQueryBuilder('s')
-            ->select('service.name as service_name, SUM(p.price) as revenue')
+        $qb = $this->createQueryBuilder('s')
+            ->select('serv.name as service_name, SUM(p.price) as revenue')
             ->join('s.plan', 'p')
             ->join('p.service', 'serv')
+            ->join('s.client', 'c')
             ->where('s.status = :status')
-            ->setParameter('status', SubscriptionStatus::ACTIVE)
-            ->groupBy('service.id')
+            ->setParameter('status', SubscriptionStatus::ACTIVE);
+
+        if ($region) {
+            $qb->andWhere('c.region = :region')
+                ->setParameter('region', $region);
+        }
+
+        return $qb->groupBy('serv.id')
             ->orderBy('revenue', 'DESC')
             ->setMaxResults(5)
             ->getQuery()

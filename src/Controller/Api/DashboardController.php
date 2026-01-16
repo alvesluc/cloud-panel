@@ -3,7 +3,7 @@
 namespace App\Controller\Api;
 
 use App\Service\DashboardService;
-use App\Repository\SubscriptionRepository; // Still need this for graphs
+use App\Repository\SubscriptionRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -22,8 +22,8 @@ class DashboardController extends AbstractController
 
         return $this->json([
             'executive_summary' => $dashboardService->getExecutiveSummary($region),
-            'actions' => $dashboardService->getActionableInsights(),
-            'top_services' => $subscriptionRepository->getTopPerformingServices(),
+            'actions' => $dashboardService->getActionableInsights($region),
+            'top_services' => $subscriptionRepository->getTopPerformingServices($region),
         ]);
     }
 }
